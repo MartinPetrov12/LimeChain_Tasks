@@ -5,6 +5,10 @@
     "hardhat": "^2.14.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.0"
+    "@chainsafe/as-sha256": "^0.4.1",
+    "@openzeppelin/contracts": "^4.9.0",
+    "bytes32": "^0.0.3",
+    "keccak256": "^1.0.6",
+    "web3": "^1.10.0"
   }
 }

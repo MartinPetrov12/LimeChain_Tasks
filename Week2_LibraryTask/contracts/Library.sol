@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -16,12 +16,6 @@ contract Library is Ownable {
     mapping(bytes32 => Book) public books;
     mapping(address => mapping(bytes32 => bool)) public borrowedBook;
 
-    /**
-        The function allows the owner of the contract to add books
-        to the library. The amount of copies has to be a positive number.
-        BookIdNonce is an identifier, which is unique for each book.
-    */
-
     event LogAddedBook(string title, uint copies);
 
     event LogBorrowedBook(string title, address borrower);
@@ -29,14 +23,14 @@ contract Library is Ownable {
     event LogBookReturned(string title, address borrower);
 
     modifier validBookData(string memory _title, uint8 _copies) {
-        bytes32 tempTitle = bytes(_title);
-        require(tempTitle.length > 0, "The title of the book can not be empty")
+        bytes memory tempTitle = bytes(_title);
+        require(tempTitle.length > 0, "The title of the book can not be empty");
         require(_copies > 0, "The amount of books to be added should be positive");
         _;
     }
 
     modifier bookDoesNotExist(string memory _title) {
-        require(books[keccak256(abi.encodePacked(_title))].length == 0, "This book is already added");
+        require(bytes(books[keccak256(abi.encodePacked(_title))].title).length == 0, "This book is already added");
         _;
     }
 
@@ -60,21 +54,21 @@ contract Library is Ownable {
         book.bookBorrowedAddresses.push(msg.sender);
         book.copies -= 1;
 
-        emit LogBorrowedBook(_desiredBookId, msg.sender);
+        emit LogBorrowedBook(book.title, msg.sender);
     }
 
-    function returnBook(uint _bookId) public {
+    function returnBook(bytes32 _bookId) public {
         Book storage book = books[_bookId];
 
-        require(borrowedBook[msg.sender][_desiredBookId], "You can not return a book you haven't borrowed");
+        require(borrowedBook[msg.sender][_bookId], "You can not return a book you haven't borrowed");
 
         borrowedBook[msg.sender][_bookId] = false;
         book.copies += 1;
 
-        emit LogBookReturned(_bookId, msg.sender);
+        emit LogBookReturned(book.title, msg.sender);
     }
 
-    function getAllAddressBorrowedBook(uint _bookId) public view returns(address[] memory _book) {
+    function getAllAddressBorrowedBook(bytes32 _bookId) public view returns(address[] memory _book) {
         Book memory book = books[_bookId];
         return book.bookBorrowedAddresses;
     }
