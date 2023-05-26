@@ -29,7 +29,7 @@ describe("USElection", function () {
   });
 
   it("Should submit state results and get current leader", async function () {
-    const stateResults = ["California", 1000, 900, 32];
+    const stateResults = {name: "California", votesBiden: 1000, votesTrump: 900, stateSeats: 32};
 
     const submitStateResultsTx = await usElection.submitStateResult(
       stateResults
@@ -41,7 +41,7 @@ describe("USElection", function () {
   });
 
   it("Should throw when try to submit already submitted state results", async function () {
-    const stateResults = ["California", 1000, 900, 32];
+    const stateResults = {name: "California", votesBiden: 1000, votesTrump: 900, stateSeats: 32};
 
     expect(await usElection.submitStateResult(stateResults)).to.be.revertedWith(
       "This state result was already submitted!"
@@ -49,7 +49,7 @@ describe("USElection", function () {
   });
 
   it("Should submit state results and get current leader", async function () {
-    const stateResults = ["Ohaio", 800, 1200, 33];
+    const stateResults = {name: "Ohaio", votesBiden: 800, votesTrump: 1200, stateSeats: 33};
 
     const submitStateResultsTx = await usElection.submitStateResult(
       stateResults
@@ -62,7 +62,7 @@ describe("USElection", function () {
 
   //TODO: ADD YOUR TESTS
   it("Should throw on non-owner trying to submit state results", async function () {
-    const stateResults = ["Wyoming", 800, 1200, 50];
+    const stateResults = {name: "Wyoming", votesBiden: 800, votesTrump: 1200, stateSeats: 50};
 
     await expect(usElection.connect(otherAccount).submitStateResult(stateResults)).to.be.revertedWith(
       "Not invoked by the owner"
@@ -74,7 +74,7 @@ describe("USElection", function () {
 
     await endElectionTransaction.wait();
     
-    const stateResults = ["Alaska", 700, 1000, 60];
+    const stateResults = {name: "Alaska", votesBiden: 700, votesTrump: 1000, stateSeats: 60};
     
     await expect(usElection.submitStateResult(stateResults)).to.be.revertedWith(
       "The election has ended already"
