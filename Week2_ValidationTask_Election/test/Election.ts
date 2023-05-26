@@ -4,46 +4,52 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
-describe("USElection", function () {
-  let usElectionFactory;
-  let usElection: Election;
+const electionWinner = {
+  NONE: 0,
+  BIDEN: 1, 
+  TRUMP: 2
+}
+
+describe("Election", function () {
+  let ElectionFactory;
+  let Election: Election;
   let owner: SignerWithAddress;
   let otherAccount: SignerWithAddress;
 
   beforeEach(async () => {
-    usElectionFactory = await ethers.getContractFactory("USElection");
+    ElectionFactory = await ethers.getContractFactory("Election");
 
-    usElection = await usElectionFactory.deploy();
+    Election = await ElectionFactory.deploy();
 
     [owner, otherAccount] = await ethers.getSigners();
 
-    await usElection.deployed();
+    await Election.deployed();
   });
 
   it("Should return the current leader before submit any election results", async function () {
-    expect(await usElection.currentLeader()).to.equal(0); // NOBODY
+    expect(await Election.currentLeader()).to.equal(electionWinner.NONE); // NOBODY
   });
 
   it("Should return the election status", async function () {
-    expect(await usElection.electionEnded()).to.equal(false); // Not Ended
+    expect(await Election.electionEnded()).to.equal(false); // Not Ended
   });
 
   it("Should submit state results and get current leader", async function () {
     const stateResults = {name: "California", votesBiden: 1000, votesTrump: 900, stateSeats: 32};
 
-    const submitStateResultsTx = await usElection.submitStateResult(
+    const submitStateResultsTx = await Election.submitStateResult(
       stateResults
     );
 
     await submitStateResultsTx.wait();
 
-    expect(await usElection.currentLeader()).to.equal(1); // BIDEN
+    expect(await Election.currentLeader()).to.equal(electionWinner.BIDEN); // BIDEN
   });
 
   it("Should throw when try to submit already submitted state results", async function () {
     const stateResults = {name: "California", votesBiden: 1000, votesTrump: 900, stateSeats: 32};
 
-    expect(await usElection.submitStateResult(stateResults)).to.be.revertedWith(
+    expect(await Election.submitStateResult(stateResults)).to.be.revertedWith(
       "This state result was already submitted!"
     );
   });
@@ -51,57 +57,57 @@ describe("USElection", function () {
   it("Should submit state results and get current leader", async function () {
     const stateResults = {name: "Ohaio", votesBiden: 800, votesTrump: 1200, stateSeats: 33};
 
-    const submitStateResultsTx = await usElection.submitStateResult(
+    const submitStateResultsTx = await Election.submitStateResult(
       stateResults
     );
 
     await submitStateResultsTx.wait();
 
-    expect(await usElection.currentLeader()).to.equal(2); // TRUMP
+    expect(await Election.currentLeader()).to.equal(electionWinner.TRUMP); // TRUMP
   });
 
   //TODO: ADD YOUR TESTS
   it("Should throw on non-owner trying to submit state results", async function () {
     const stateResults = {name: "Wyoming", votesBiden: 800, votesTrump: 1200, stateSeats: 50};
 
-    await expect(usElection.connect(otherAccount).submitStateResult(stateResults)).to.be.revertedWith(
+    await expect(Election.connect(otherAccount).submitStateResult(stateResults)).to.be.revertedWith(
       "Not invoked by the owner"
     );
   });
 
   it("Should throw when try to submit results on ended election", async function () {
-    const endElectionTransaction = await usElection.endElection();
+    const endElectionTransaction = await Election.endElection();
 
     await endElectionTransaction.wait();
     
     const stateResults = {name: "Alaska", votesBiden: 700, votesTrump: 1000, stateSeats: 60};
     
-    await expect(usElection.submitStateResult(stateResults)).to.be.revertedWith(
+    await expect(Election.submitStateResult(stateResults)).to.be.revertedWith(
       "The election has ended already"
     );
   });
 
   it("Should end the elections, get the leader and election status", async function () {
-    const endElectionTx = await usElection.endElection();
+    const endElectionTx = await Election.endElection();
 
     await endElectionTx.wait();
 
-    expect(await usElection.currentLeader()).to.equal(0); // TRUMP
+    expect(await Election.currentLeader()).to.equal(electionWinner.NONE);
 
-    expect(await usElection.electionEnded()).to.equal(true); // Ended
+    expect(await Election.electionEnded()).to.equal(true); // Ended
   });
 
   it("Should throw on non-positive amount of state seats", async function () {
     const stateResults = {name: "Washington", votesBiden: 700, votesTrump: 1000, stateSeats: 0};
 
-    await expect(usElection.submitStateResult(stateResults)).to.be.revertedWith(
+    await expect(Election.submitStateResult(stateResults)).to.be.revertedWith(
       "States must have at least 1 seat"
     );
   });
 
   it("Should throw on equal amount of votes for both parties", async function () {
     const stateResults = {name: "South Dakota", votesBiden: 100, votesTrump: 100, stateSeats: 100};
-    await expect(usElection.submitStateResult(stateResults)).to.be.revertedWith(
+    await expect(Election.submitStateResult(stateResults)).to.be.revertedWith(
       "There cannot be a tie"
     );
   });
@@ -111,23 +117,23 @@ describe("USElection", function () {
 
     const stateResults2 = {name: "Hawaii", votesBiden: 1001, votesTrump: 500, stateSeats: 20}
 
-    await usElection.submitStateResult(stateResults1);
+    await Election.submitStateResult(stateResults1);
 
-    await expect(usElection.submitStateResult(stateResults2)).to.be.revertedWith(
+    await expect(Election.submitStateResult(stateResults2)).to.be.revertedWith(
       "This state result was already submitted!"
     );
   });
 
   it("Should throw on non-owner trying to end election", async function () {
-    await expect(usElection.connect(otherAccount).endElection()).to.be.revertedWith(
+    await expect(Election.connect(otherAccount).endElection()).to.be.revertedWith(
       "Not invoked by the owner"
     );
   })
 
   it("Should throw on trying to end an already ended election", async function () {
-    await usElection.endElection();
+    await Election.endElection();
 
-    await expect(usElection.endElection()).to.be.revertedWith(
+    await expect(Election.endElection()).to.be.revertedWith(
       "The election has ended already"
     );
   })

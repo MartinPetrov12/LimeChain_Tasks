@@ -23,8 +23,14 @@ subtask("print", "Prints a message")
       console.log(taskArgs.message);
     });
 
-const config: HardhatUserConfig = {
-  solidity: "0.8.17",
+module.exports = {
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.17"
+      }
+    ]
+  },
   networks: {
     // Goerli Testnet
     goerli: {
