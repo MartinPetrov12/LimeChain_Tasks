@@ -1,12 +1,12 @@
-import { USElection__factory } from "./../typechain-types/factories/Election.sol/USElection__factory";
-import { USElection } from "./../typechain-types/Election.sol/USElection";
+import { Election__factory } from "../typechain-types/factories/Election__factory";
+import { Election } from "../typechain-types/Election";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
 describe("USElection", function () {
   let usElectionFactory;
-  let usElection: USElection;
+  let usElection: Election;
   let owner: SignerWithAddress;
   let otherAccount: SignerWithAddress;
 

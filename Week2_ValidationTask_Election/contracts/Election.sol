@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import "./Ownable.sol";
 
-contract USElection is Ownable {
+contract Election is Ownable {
     uint8 public constant BIDEN = 1;
     uint8 public constant TRUMP = 2;
 
