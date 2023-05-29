@@ -8,7 +8,7 @@ contract Library is Ownable {
     struct Book {
         uint8 copies;
         string title;
-        address[] bookBorrowedAddresses;
+        address[] borrowers;
     }
 
     bytes32[] public bookId;
@@ -35,10 +35,8 @@ contract Library is Ownable {
     }
 
     function addBooks(string memory _title, uint8 _copies) public onlyOwner validBookData(_title, _copies) bookDoesNotExist(_title) {
-        address[] memory borrowed;
-        Book memory newBook = Book(_copies, _title, borrowed);
         bytes32 newBookHash = keccak256(abi.encodePacked(_title));
-        books[newBookHash] = newBook;
+        books[newBookHash] = Book(_copies, _title, new address[](0));
         bookId.push(newBookHash);
         emit LogAddedBook(_title, _copies);
     }
@@ -51,7 +49,7 @@ contract Library is Ownable {
         require(!borrowedBook[msg.sender][_desiredBookId], "You have already borrowed the book");
 
         borrowedBook[msg.sender][_desiredBookId] = true;
-        book.bookBorrowedAddresses.push(msg.sender);
+        book.borrowers.push(msg.sender);
         book.copies -= 1;
 
         emit LogBorrowedBook(book.title, msg.sender);
@@ -70,7 +68,7 @@ contract Library is Ownable {
 
     function getAllAddressBorrowedBook(bytes32 _bookId) public view returns(address[] memory _book) {
         Book memory book = books[_bookId];
-        return book.bookBorrowedAddresses;
+        return book.borrowers;
     }
 
 }

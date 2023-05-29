@@ -1,16 +1,14 @@
-require("dotenv").config();
+import dotenv from 'dotenv';
 import { HardhatUserConfig, task, subtask } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+
+dotenv.config({ path: '.env.development' });
 
 const config: HardhatUserConfig = {
   solidity: "0.8.18",
   networks: {
     sepolia: {
       url: process.env.INFURA_SEPOLIA_URL,
-      accounts: [process.env.PRIVATE_KEY || '']
-    },
-    goerli: {
-      url: process.env.INFURA_GOERLI_URL,
       accounts: [process.env.PRIVATE_KEY || '']
     }
   },
