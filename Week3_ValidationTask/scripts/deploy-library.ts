@@ -7,7 +7,7 @@ import { ethers } from "hardhat";
 export async function normalDeploy() {
 
   const Library_Factory = await ethers.getContractFactory("Library");
-  const library = await Library_Factory.deploy();
+  const library = await Library_Factory.deploy({gasLimit: 30000000, gasPrice: 5000000000});
 
   await library.deployed();
 

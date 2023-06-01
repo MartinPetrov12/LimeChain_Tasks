@@ -9,10 +9,10 @@ interface Book {
 }
 
 async function run() {
-    const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+    const contractAddress = "DEPLOYED_CONTRACT_ADDRESS"
     const provider = new providers.JsonRpcProvider("http://127.0.0.1:8545/");
     const libraryContract = new ethers.Contract(contractAddress, LibraryArtifact.abi, provider);
-    const account = new ethers.Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
+    const account = new ethers.Wallet("PRIVATE_KEY_FROM_LOCAL_NODE", provider);
     
     const bookTitle = "TestBook12";
     const bookCopies = 5;
@@ -122,7 +122,6 @@ async function checkAvailability(bookId: any, contract: Contract): Promise<boole
  */
 async function reserveBook(bookId: any, contract: Contract, account: Wallet, provider: providers.JsonRpcProvider) {
     const bookToBeReserved = await contract.books(bookId);
-    
 
     const testTx = await contract.populateTransaction.reserveBook(bookId);
     testTx.nonce = await account.getTransactionCount();
