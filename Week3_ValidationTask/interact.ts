@@ -9,12 +9,12 @@ interface Book {
 }
 
 async function run() {
-    const contractAddress = "ADDRESS_OF_LOCALLY_DEPLOYED_CONTRACT"
+    const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
     const provider = new providers.JsonRpcProvider("http://127.0.0.1:8545/");
     const libraryContract = new ethers.Contract(contractAddress, LibraryArtifact.abi, provider);
-    const account = new ethers.Wallet("PRIVATE_KEY_OF_THE_OWNER_OF_LIBRARY_CONTRACT", provider);
+    const account = new ethers.Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
     
-    const bookTitle = "TestBook";
+    const bookTitle = "TestBook12";
     const bookCopies = 5;
     const addedBook = await addBook(bookTitle, bookCopies, libraryContract, account, provider);
     
@@ -31,7 +31,19 @@ async function run() {
     }
 }
 
+/**
+ * The function sends a transaction to the contract, which aims to add a book.
+ * 
+ * @param title - title of the book
+ * @param copies - amount of copies of the book
+ * @param contract - instance of the library contract
+ * @param account - account of the sender of the transaction. It needs to be the owner of the contract, 
+ *                  since he is the only one who can add new books
+ * @param provider - the provider of the network
+ * @returns - an object of interface Book 
+ */
 async function addBook(title: string, copies: number, contract: Contract, account: Wallet, provider: providers.JsonRpcProvider): Promise<Book> {
+
     const testTx = await contract.populateTransaction.addBooks(title, copies);
     testTx.nonce = await account.getTransactionCount();
     testTx.gasPrice = await provider.getGasPrice();
@@ -49,14 +61,22 @@ async function addBook(title: string, copies: number, contract: Contract, accoun
     }    
 }
 
+/**
+ * The function returns an array of the books available to reserve.
+ * Since the array of books in the library is an dynamic array and 
+ * the size of the array is unknown, we are iterating through the array
+ * until we reach an index out of bounds. 
+ * 
+ * @param contract - an instance of the library contract
+ * @returns - a promise of array of available books
+ */
 async function getAvailableBooks(contract: Contract): Promise<Book[]> {
     let counter = 0;
-    let currentBookAddress;
     let flag:boolean = false;
     let result:Book[] = [];
     while(!flag) {
         try {
-            currentBookAddress = await contract.bookId(counter);
+            let currentBookAddress = await contract.bookId(counter);
             counter++;
             let currentBook = await contract.books(currentBookAddress);
             if(currentBook.copies > 0) {
@@ -69,8 +89,22 @@ async function getAvailableBooks(contract: Contract): Promise<Book[]> {
     return result;
 }
 
+/**
+ * The function checks if a book is available to be reserved.
+ * 
+ * @param bookId - the id of the book 
+ * @param contract - an instance of the library contract
+ * @returns - a promise of type boolean, stating whether the book is available
+ */
 async function checkAvailability(bookId: any, contract: Contract): Promise<boolean> {
-    let book = await contract.books(bookId);
+    let book;
+
+    try {
+        book = await contract.books(bookId);
+    } catch {
+        throw Error("There was an error while checking the availability of book with id: " + bookId );
+    }
+
     if(book.copies > 0) {
         return true;
     } else {
@@ -78,6 +112,14 @@ async function checkAvailability(bookId: any, contract: Contract): Promise<boole
     }
 }
 
+/**
+ * The function sends a transaction to the contract, which aims to reserve a book.
+ * 
+ * @param bookId - the id of the book to be reserved 
+ * @param contract - an instance of the library contract 
+ * @param account - a wallet of the account reserving the book
+ * @param provider - the provider of the network
+ */
 async function reserveBook(bookId: any, contract: Contract, account: Wallet, provider: providers.JsonRpcProvider) {
     const bookToBeReserved = await contract.books(bookId);
     
@@ -90,15 +132,25 @@ async function reserveBook(bookId: any, contract: Contract, account: Wallet, pro
     const approveTxSigned = await account.signTransaction(testTx);
     const submittedTx = await provider.sendTransaction(approveTxSigned);
     const approveReceipt = await submittedTx.wait();
-    
-    const reservedBook = await contract.books(bookId);
 
-    if(reservedBook.copies + 1 === bookToBeReserved.copies) {
-        console.log("The book was reserved");
+    if (approveReceipt.status != 1) {
+        throw Error("There was an error while reserving book with id: " +  bookId);
+    } else {
+        const reservedBook = await contract.books(bookId);
+        if(reservedBook.copies + 1 === bookToBeReserved.copies) {
+            console.log("Book with id " + bookId + " was reserved.");
+        }
     }
-
 }
 
+/**
+ * The function sends a transaction to the contract, which aims to return a book. 
+ * 
+ * @param bookId - the id of the book to be returned
+ * @param contract - an instance of the library contract
+ * @param account - a wallet of the account returning the book
+ * @param provider - the provier of the network
+ */
 async function returnBook(bookId: any, contract: Contract, account: Wallet, provider: providers.JsonRpcProvider) {
     
     const testTx = await contract.populateTransaction.returnBook(bookId);
@@ -111,9 +163,9 @@ async function returnBook(bookId: any, contract: Contract, account: Wallet, prov
     const approveReceipt = await submittedTx.wait();
     
     if (approveReceipt.status != 1) {
-        console.log("The book was not returned")
+        throw Error("There was an error while return book with id: " + bookId);
     } else {
-        console.log("The book was returned");
+        console.log("The book with id " + bookId + " was returned.");
     }   
     
 }
