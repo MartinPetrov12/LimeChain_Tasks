@@ -1,14 +1,15 @@
 # Library
 
-The following project is an implementation of a Library. That is a validation task from the second week of Limechain's bootcamp. 
+The following project is an implementation of a Library. That is a validation task from the third week of Limechain's bootcamp. 
 
 ## Overview
 
-The task was to create a Library contract, reach 100% test coverage and to create deployment scripts. Also, a subtask has been created which prints out the block number, gas price and name of the network after a contract has been deployed.
+The task was to use the Library Contract from last week and to interact with it via ethers.js
 
-Address of a deployed instance of the contract on Sepolia: 0xeEfD18BA75333e32887d10a17Fd35d0ffd2DDa1a
+There are 2 new files:
+    - interact.ts
+    - interact-sepolia.ts
 
-Link to the verified contract: https://sepolia.etherscan.io/address/0xeEfD18BA75333e32887d10a17Fd35d0ffd2DDa1a#code
 
 ## Prerequisites
 
@@ -35,14 +36,11 @@ Before getting started, make sure you have the following installed:
 ## Configuration
 The required configuration steps need to be taken before experimenting with the code:
 
-1. Create accounts on Infura and Etherscan
-2. Obtain an Infura API key for both Sepolia and Goerli testnets, and an Etherscan API key
-3. Fill in the API keys in the .env file
-4. Fill in your private key in the .env file
+1. Fill in your private key in the .env file
 
-With these configurations in place, the project is set up to use Infura for deployment purposes and Etherscan for validation ones.
+With these configurations in place, the project is set up to use Infura for deployment and testing purposes.
 
-## Usage
+## Deployment
 In order to deploy an instance of the contract, first it needs to be compiled:
 ```
 npx hardhat compile
@@ -52,11 +50,44 @@ After that has been done, it can be deployed via the deploy task:
 npx hardhat deploy
 ```
 
-If a specific testnet is need, it can be configured by specifying the ``--network`` parameter. For example, if one would like to deploy the contract onto Sepolia:
+If a specific testnet is needed, it can be configured by specifying the ``--network`` parameter. For example, if one would like to deploy the contract onto Sepolia:
 ```
 npx hardhat deploy --network sepolia
 ``` 
-The supported test networks are Sepolia and Goerli.
+The supported test network is Sepolia.
+
+## Interacting with the locally deployed contract 
+In order to interact with the contract on a local network, first a local node needs to be set-up.
+
+```
+npx hardhat node
+```
+
+A local deployment needs to be done:
+```
+npx hardhat deploy --network localhost
+```
+
+After that is done, you should take the address of the contract and fill it in under ``contractAddress`` in interact.ts. Then you can should put in the private key of Account #0 (that is the default address used for contract deployments) under  ``account``.
+
+Then, you can run the interact.ts file by:
+```
+ts-node interact.ts
+```
+
+## Interacting with the contract deployed on Sepolia
+In order to interact with the contract on the Sepolia network, first it needs to be deployed there.
+
+```
+npx hardhat deploy --network sepolia
+```
+
+After that is done, you should take the address of the contract and fill it in under ``contractAddress`` in interact.ts. Then, you should fill in your private key in the ``.env`` file.
+
+Finally, you can run the interact.ts file by:
+```
+ts-node interact.ts
+```
 
 ## Testing
 
